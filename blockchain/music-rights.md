@@ -394,7 +394,7 @@ npm install -D tailwindcss postcss autoprefixer
 
 2. Delete the `frontend/app/page.js` file
 
-3. Create a new `index.js` file in the new pages directory <- setAccount is obtained from Step 2, Section 4
+3. Create a new `index.js` file in the new `pages` directory <- setAccount is obtained from Step 2, Section 4
 
 ```jsx
 // pages/index.js

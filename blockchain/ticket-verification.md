@@ -286,12 +286,26 @@ const contract = new web3.eth.Contract(contractABI, contractAddress);
 app.post("/create-event", async (req, res) => {
   const { name, date, ticketPrice, totalTickets, from } = req.body;
   try {
+    const dateValue = BigInt(date);
+    const ticketPriceValue = BigInt(ticketPrice);
+    const totalTicketsValue = BigInt(totalTickets);
+
     const gasEstimate = await contract.methods
-      .createEvent(name, date, ticketPrice, totalTickets)
+      .createEvent(
+        name,
+        dateValue.toString(),
+        ticketPriceValue.toString(),
+        totalTicketsValue.toString()
+      )
       .estimateGas({ from });
 
     const result = await contract.methods
-      .createEvent(name, date, ticketPrice, totalTickets)
+      .createEvent(
+        name,
+        dateValue.toString(),
+        ticketPriceValue.toString(),
+        totalTicketsValue.toString()
+      )
       .send({ from, gas: gasEstimate });
 
     const eventId = result.events.EventCreated.returnValues.eventId;
@@ -302,12 +316,17 @@ app.post("/create-event", async (req, res) => {
       )
     );
 
-    res.json({ ...serializedResult, eventId });
+    res.json({ ...serializedResult, eventId: `EV${eventId}` });
   } catch (error) {
     console.error("Error details:", error);
     res.status(500).json({
-      error: error.message,
-      details: error.data || "No additional details available",
+      error: "Failed to create event",
+      message: error.message,
+      details: error.data
+        ? JSON.stringify(error.data, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        : "No additional details available",
     });
   }
 });
@@ -315,16 +334,17 @@ app.post("/create-event", async (req, res) => {
 app.post("/purchase-ticket", async (req, res) => {
   const { eventId, from } = req.body;
   try {
-    const event = await contract.methods.getEvent(eventId).call();
-    const ticketPrice = event[2];
+    const cleanEventId = eventId.startsWith("EV") ? eventId.slice(2) : eventId;
+    const event = await contract.methods.getEvent(cleanEventId).call();
+    const ticketPrice = BigInt(event[2]);
 
     const gasEstimate = await contract.methods
-      .purchaseTicket(eventId)
-      .estimateGas({ from, value: ticketPrice });
+      .purchaseTicket(cleanEventId)
+      .estimateGas({ from, value: ticketPrice.toString() });
 
     const result = await contract.methods
-      .purchaseTicket(eventId)
-      .send({ from, value: ticketPrice, gas: gasEstimate });
+      .purchaseTicket(cleanEventId)
+      .send({ from, value: ticketPrice.toString(), gas: gasEstimate });
 
     const ticketId = result.events.TicketPurchased.returnValues.ticketId;
 
@@ -334,14 +354,16 @@ app.post("/purchase-ticket", async (req, res) => {
       )
     );
 
-    res.json({ ...serializedResult, ticketId });
+    res.json({ ...serializedResult, ticketId: `TI${ticketId}` });
   } catch (error) {
     console.error("Error details:", error);
     res.status(500).json({
       error: "Transaction failed",
       message: error.message,
       details: error.data
-        ? JSON.stringify(error.data)
+        ? JSON.stringify(error.data, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
         : "No additional details available",
     });
   }
@@ -350,6 +372,17 @@ app.post("/purchase-ticket", async (req, res) => {
 app.post("/verify-ticket", async (req, res) => {
   const { ticketId, from } = req.body;
   try {
+    const cleanTicketId = ticketId.startsWith("TI")
+      ? ticketId.slice(2)
+      : ticketId;
+    const ticket = await contract.methods.getTicket(cleanTicketId).call();
+    const event = await contract.methods.getEvent(ticket[0]).call();
+    const currentTime = BigInt(Math.floor(Date.now() / 1000));
+
+    if (currentTime < BigInt(event[1])) {
+      return res.status(400).json({ error: "Event has not started yet" });
+    }
+
     const gasEstimate = await contract.methods
       .verifyTicket(ticketId)
       .estimateGas({ from });
@@ -371,7 +404,9 @@ app.post("/verify-ticket", async (req, res) => {
       error: "Transaction failed",
       message: error.message,
       details: error.data
-        ? JSON.stringify(error.data)
+        ? JSON.stringify(error.data, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
         : "No additional details available",
     });
   }
@@ -380,8 +415,9 @@ app.post("/verify-ticket", async (req, res) => {
 app.get("/event/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const event = await contract.methods.getEvent(id).call();
-    
+    const cleanId = id.startsWith("EV") ? id.slice(2) : id;
+    const event = await contract.methods.getEvent(cleanId).call();
+
     if (!event[0]) {
       return res.status(404).json({ error: "Event not found" });
     }
@@ -389,10 +425,10 @@ app.get("/event/:id", async (req, res) => {
     const serializedEvent = {
       id: id,
       name: event[0],
-      date: event[1],
-      ticketPrice: event[2],
-      totalTickets: event[3],
-      soldTickets: event[4],
+      date: event[1].toString(),
+      ticketPrice: event[2].toString(),
+      totalTickets: event[3].toString(),
+      soldTickets: event[4].toString(),
       organizer: event[5],
     };
     res.json(serializedEvent);
@@ -405,11 +441,12 @@ app.get("/event/:id", async (req, res) => {
 app.get("/ticket/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const ticket = await contract.methods.getTicket(id).call();
-    
+    const cleanId = id.startsWith("TI") ? id.slice(2) : id;
+    const ticket = await contract.methods.getTicket(cleanId).call();
+
     const serializedTicket = {
       id: id,
-      eventId: ticket[0],
+      eventId: ticket[0].toString(),
       owner: ticket[1],
       used: ticket[2],
     };
@@ -458,7 +495,7 @@ npm install -D tailwindcss postcss autoprefixer
 
 2. Delete the `frontend/app/page.js` file
 
-3. Create a new `index.js` file in the new pages directory <- setAccount is obtained from Step 2, Section 4
+3. Create a new `index.js` file in the new `pages` directory <- setAccount is obtained from Step 2, Section 4
 
 ```jsx
 // pages/index.js
@@ -590,7 +627,9 @@ export default function Home() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Ticket Verification Blockchain</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Ticket Verification Blockchain
+      </h1>
       <p className="mb-8">
         Your account: <span className="font-mono">{account}</span>
       </p>
@@ -609,6 +648,9 @@ export default function Home() {
             type="datetime-local"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
+            min={new Date(new Date().setDate(new Date().getDate() + 1))
+              .toISOString()
+              .slice(0, 16)}
             className="px-3 py-2 border rounded"
           />
           <input
@@ -641,7 +683,7 @@ export default function Home() {
         <h2 className="text-2xl font-semibold mb-4">Purchase a Ticket</h2>
         <div className="flex space-x-4">
           <input
-            type="number"
+            type="text"
             placeholder="Event ID"
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}
@@ -654,14 +696,16 @@ export default function Home() {
             Purchase Ticket
           </button>
         </div>
-        {purchaseStatus && <p className="mt-2 text-green-600">{purchaseStatus}</p>}
+        {purchaseStatus && (
+          <p className="mt-2 text-green-600">{purchaseStatus}</p>
+        )}
       </div>
 
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Verify a Ticket</h2>
         <div className="flex space-x-4">
           <input
-            type="number"
+            type="text"
             placeholder="Ticket ID"
             value={ticketId}
             onChange={(e) => setTicketId(e.target.value)}
@@ -674,14 +718,16 @@ export default function Home() {
             Verify Ticket
           </button>
         </div>
-        {verificationStatus && <p className="mt-2 text-green-600">{verificationStatus}</p>}
+        {verificationStatus && (
+          <p className="mt-2 text-green-600">{verificationStatus}</p>
+        )}
       </div>
 
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Event Details</h2>
         <div className="flex space-x-4 mb-4">
           <input
-            type="number"
+            type="text"
             placeholder="Event ID"
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}
@@ -696,12 +742,29 @@ export default function Home() {
         </div>
         {eventDetails && (
           <div className="bg-gray-100 p-4 rounded">
-            <p><span className="font-semibold">Name:</span> {eventDetails.name}</p>
-            <p><span className="font-semibold">Date:</span> {new Date(eventDetails.date * 1000).toLocaleString()}</p>
-            <p><span className="font-semibold">Ticket Price:</span> {eventDetails.ticketPrice} Wei</p>
-            <p><span className="font-semibold">Total Tickets:</span> {eventDetails.totalTickets}</p>
-            <p><span className="font-semibold">Sold Tickets:</span> {eventDetails.soldTickets}</p>
-            <p><span className="font-semibold">Organizer:</span> {eventDetails.organizer}</p>
+            <p>
+              <span className="font-semibold">Name:</span> {eventDetails.name}
+            </p>
+            <p>
+              <span className="font-semibold">Date:</span>{" "}
+              {new Date(eventDetails.date * 1000).toLocaleString()}
+            </p>
+            <p>
+              <span className="font-semibold">Ticket Price:</span>{" "}
+              {eventDetails.ticketPrice} Wei
+            </p>
+            <p>
+              <span className="font-semibold">Total Tickets:</span>{" "}
+              {eventDetails.totalTickets}
+            </p>
+            <p>
+              <span className="font-semibold">Sold Tickets:</span>{" "}
+              {eventDetails.soldTickets}
+            </p>
+            <p>
+              <span className="font-semibold">Organizer:</span>{" "}
+              {eventDetails.organizer}
+            </p>
           </div>
         )}
       </div>
@@ -710,7 +773,7 @@ export default function Home() {
         <h2 className="text-2xl font-semibold mb-4">Ticket Details</h2>
         <div className="flex space-x-4 mb-4">
           <input
-            type="number"
+            type="text"
             placeholder="Ticket ID"
             value={ticketId}
             onChange={(e) => setTicketId(e.target.value)}
@@ -725,9 +788,18 @@ export default function Home() {
         </div>
         {ticketDetails && (
           <div className="bg-gray-100 p-4 rounded">
-            <p><span className="font-semibold">Event ID:</span> {ticketDetails.eventId}</p>
-            <p><span className="font-semibold">Owner:</span> {ticketDetails.owner}</p>
-            <p><span className="font-semibold">Used:</span> {ticketDetails.used ? "Yes" : "No"}</p>
+            <p>
+              <span className="font-semibold">Event ID:</span>{" "}
+              {ticketDetails.eventId}
+            </p>
+            <p>
+              <span className="font-semibold">Owner:</span>{" "}
+              {ticketDetails.owner}
+            </p>
+            <p>
+              <span className="font-semibold">Used:</span>{" "}
+              {ticketDetails.used ? "Yes" : "No"}
+            </p>
           </div>
         )}
       </div>
