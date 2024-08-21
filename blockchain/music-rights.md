@@ -359,9 +359,9 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 node app.js
 ```
 
-## Step 4: Cài đặt thư mục frontend (trong thư mục chính music-rights-blockchain)
+## Step 4: Setting up the Frontend Directory (in the main music-rights-blockchain directory)
 
-1. Tạo thư mục frontend - Next.js - Chú thích TypeScripts - No, ESLint - No, TaiwindCss - Yes, `src/` - No, App Router - Yes, import alias - No
+1. Create a frontend directory using Next.js - Comments: TypeScript - No, ESLint - No, Tailwind CSS - Yes, `src/` - No, App Router - Yes, import alias - No
 
 ```bash
 npx create-next-app@latest frontend 
@@ -373,9 +373,9 @@ cd frontend
 npm install -D tailwindcss postcss autoprefixer
 ```
 
-2. Xoá file frontend/app/page.js
+2. Delete the frontend/app/page.js file
 
-3. Tạo file mới index.js trong thư mục mới pages <- setAccount là lấy ở Bước 2 mục 4
+3. Create a new index.js file in the new pages directory <- setAccount is obtained from Step 2, Section 4
 
 ```jsx
 // pages/index.js
@@ -543,7 +543,7 @@ export default function Home() {
 }
 ```
 
-4. Tạo file mới _app.js trong thư mục pages:
+4. Create a new _app.js file in the pages directory:
 ```js
 import "../app/globals.css";
 
@@ -554,7 +554,7 @@ function MyApp({ Component, pageProps }) {
 export default MyApp;
 ```
 
-5. Cập nhật file postcss.config.mjs:
+5. Update the postcss.config.mjs file:
 ```mjs
 /** @type {import('postcss-load-config').Config} */
 const config = {
@@ -567,7 +567,7 @@ const config = {
 export default config;
 ```
 
-6. Cập nhật file next.config.mjs:
+6. Update the next.config.mjs file:
 
 ```mjs
 /** @type {import('next').NextConfig} */
@@ -578,7 +578,7 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-7. Cập nhật file app/globals.css:
+7. Update the app/globals.css file:
 
 ```css
 @tailwind base;
@@ -610,7 +610,7 @@ body {
 }
 ```
 
-8. Khởi động ứng dụng frontend
+8. Start the frontend application
 
 ```bash
 npm run dev
@@ -618,7 +618,7 @@ npm run dev
 
 9. Open your browser and navigate to `http://localhost:3000`
 
-## Step 5: Run your application (Nếu mở máy lại và các câu lệnh kia đã đóng)
+## Step 5: Run your application (If you restart and the previous commands have closed)
 
 1. Start your local Ethereum network:
 ```bash
