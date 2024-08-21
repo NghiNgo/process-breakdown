@@ -23,7 +23,7 @@ This command changes the current directory to the newly created project director
 
 ## Step 2: Install the smart contract directory
 
-1. Initialize the smart contract directory in the main music-rights-blockchain directory
+1. Initialize the smart contract directory in the main `music-rights-blockchain` directory
 
 ```bash
 mkdir smartcontract
@@ -242,7 +242,7 @@ app.use(bodyParser.json());
 
 const web3 = new Web3("http://127.0.0.1:8545");
 const contractABI = require("../smartcontract/artifacts/contracts/MusicRights.sol/MusicRights.json").abi;
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // The address of the deployed contract
+const contractAddress = "deployed_contract_address_Step_2_8"; // The address of the deployed contract
 
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
@@ -375,12 +375,11 @@ cd frontend
 npm install -D tailwindcss postcss autoprefixer
 ```
 
-2. Delete the frontend/app/page.js file
+2. Delete the `frontend/app/page.js` file
 
-3. Create a new index.js file in the new pages directory <- setAccount is obtained from Step 2, Section 4
+3. Create a new `index.js` file in the new pages directory <- setAccount is obtained from Step 2, Section 4
 
 ```jsx
-// pages/index.js
 // pages/index.js
 import { useState, useEffect } from "react";
 
@@ -565,7 +564,7 @@ export default function Home() {
 }
 ```
 
-4. Create a new _app.js file in the pages directory:
+4. Create a new `_app.js` file in the `pages` directory:
 ```js
 import "../app/globals.css";
 
@@ -576,7 +575,7 @@ function MyApp({ Component, pageProps }) {
 export default MyApp;
 ```
 
-5. Update the postcss.config.mjs file:
+5. Update the `postcss.config.mjs` file:
 ```mjs
 /** @type {import('postcss-load-config').Config} */
 const config = {
@@ -589,7 +588,7 @@ const config = {
 export default config;
 ```
 
-6. Update the next.config.mjs file:
+6. Update the `next.config.mjs` file:
 
 ```mjs
 /** @type {import('next').NextConfig} */
@@ -600,7 +599,7 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-7. Update the app/globals.css file:
+7. Update the `app/globals.css` file:
 
 ```css
 @tailwind base;
