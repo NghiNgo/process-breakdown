@@ -33,14 +33,19 @@ This command creates a new directory for the smart contract.
 ```bash
 cd smartcontract
 ```
-This command changes the current directory to the smart contract directory. - TypeScript
+This command changes the current directory to the smart contract directory. You'll be prompted with the following options:
+
+- Choose "Create a TypeScript project"
+- Confirm the Hardhat project root (it should default to your current directory)
+- Choose to add a .gitignore file (recommended)
+- Choose to install the sample project's dependencies (recommended)
 
 ```bash
 npx hardhat
 ```
 This command initializes a new Hardhat project for smart contract development.
 
-2. Write Smart Contract: (smart-contract directory)
+1. Write Smart Contract: (smart-contract directory)
 
 Create a file `TicketVerification.sol` and remove the file `Lock.sol` from the `contracts` directory:
 
