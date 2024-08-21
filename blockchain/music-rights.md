@@ -31,7 +31,7 @@ This command creates a new directory for the smart contract.
 ```bash
 cd smartcontract
 ```
-This command changes the current directory to the smart contract directory.
+This command changes the current directory to the smart contract directory. - TypeScript
 
 ```bash
 npx hardhat
@@ -40,7 +40,7 @@ This command initializes a new Hardhat project for smart contract development.
 
 2. Write Smart Contract: (smart-contract directory)
 
-Create a file `MusicRights.sol` in the `contracts` directory:
+Create a file `MusicRights.sol` and remove the file `Lock.sol` from the `contracts` directory:
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -240,7 +240,7 @@ app.use(bodyParser.json());
 
 const web3 = new Web3("http://127.0.0.1:8545");
 const contractABI = require("../smartcontract/artifacts/contracts/MusicRights.sol/MusicRights.json").abi;
-const contractAddress = "deployed_contract_address_Step_2_8"; // The address of the deployed contract
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // The address of the deployed contract
 
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
@@ -361,7 +361,7 @@ node app.js
 
 ## Step 4: Setting up the Frontend Directory (in the main music-rights-blockchain directory)
 
-1. Create a frontend directory using Next.js - Comments: TypeScript - No, ESLint - No, Tailwind CSS - Yes, `src/` - No, App Router - Yes, import alias - No
+1. Create a frontend directory using Next.js - Comments: `TypeScript` - No, `ESLint` - No, `Tailwind CSS` - Yes, `src/` - No, `App Router` - Yes, `import alias` - No
 
 ```bash
 npx create-next-app@latest frontend 
@@ -379,6 +379,7 @@ npm install -D tailwindcss postcss autoprefixer
 
 ```jsx
 // pages/index.js
+// pages/index.js
 import { useState, useEffect } from "react";
 
 export default function Home() {
@@ -388,6 +389,8 @@ export default function Home() {
   const [songId, setSongId] = useState("");
   const [songDetails, setSongDetails] = useState(null);
   const [registrationStatus, setRegistrationStatus] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [playError, setPlayError] = useState("");
 
   useEffect(() => {
     setAccount("account_Step_2_6");
@@ -397,9 +400,17 @@ export default function Home() {
     try {
       const response = await fetch(`http://localhost:3001/song/${songId}`);
       const result = await response.json();
-      setSongDetails(result);
+      if (response.ok) {
+        setSongDetails(result);
+        setErrorMessage("");
+      } else {
+        setSongDetails(null);
+        setErrorMessage(result.error || "Failed to fetch song details");
+      }
     } catch (error) {
       console.error("Error fetching song details:", error);
+      setSongDetails(null);
+      setErrorMessage("An error occurred while fetching song details");
     }
   };
 
@@ -435,10 +446,17 @@ export default function Home() {
         body: JSON.stringify({ id: songId, from: account }),
       });
       const result = await response.json();
-      console.log("Song played:", result);
-      setSongId("");
+
+      if (response.ok) {
+        console.log("Song played:", result);
+        setSongId("");
+        setPlayError("");
+      } else {
+        setPlayError(result.error || result.message || "Failed to play song");
+      }
     } catch (error) {
       console.error("Error playing song:", error);
+      setPlayError("An error occurred while playing the song");
     }
   };
 
@@ -495,6 +513,7 @@ export default function Home() {
             Play Song
           </button>
         </div>
+        {playError && <p className="mt-2 text-red-600">{playError}</p>}
       </div>
 
       <div>
@@ -514,6 +533,7 @@ export default function Home() {
             Fetch Song Details
           </button>
         </div>
+        {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
         {songDetails && (
           <div className="bg-gray-100 p-4 rounded">
             <p>
@@ -648,3 +668,39 @@ npm run dev
 ```
 
 4. Open your browser and navigate to `http://localhost:3000`
+
+## Advanced - Start all scripts
+
+1. Create `start_all.bat` in the folder containing `frontend`, `backend`, and `smartcontract`
+
+```bat
+@echo off
+
+:: Start smartcontract
+start cmd /k "cd /d %~dp0smartcontract && npx hardhat node"
+timeout /t 15
+start cmd /k "cd /d %~dp0smartcontract && npx hardhat run scripts/deploy.ts --network localhost"
+
+:: Start frontend
+start cmd /k "cd /d %~dp0frontend && npm run dev"
+
+:: Start backend
+start cmd /k "cd /d %~dp0backend && node server.js"
+
+echo All projects started.
+```
+
+2. Create `stop_all.bat` in the same folder
+```bat
+@echo off
+
+:: Kill all node processes
+taskkill /F /IM node.exe
+
+:: Kill all Windows Terminal instances except the current one
+powershell -Command "Get-Process WindowsTerminal | Where-Object { $_.Id -ne $PID } | Stop-Process -Force"
+
+echo All projects stopped.
+```
+
+3. Double click `start_all.bat` to start and double click `stop_all.bat` to stop.
