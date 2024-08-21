@@ -33,19 +33,19 @@ This command creates a new directory for the smart contract.
 ```bash
 cd smartcontract
 ```
-This command changes the current directory to the smart contract directory. You'll be prompted with the following options:
+This command changes the current directory to the smart contract directory. 
+
+```bash
+npx hardhat
+```
+This command initializes a new Hardhat project for smart contract development. You'll be prompted with the following options:
 
 - Choose "Create a TypeScript project"
 - Confirm the Hardhat project root (it should default to your current directory)
 - Choose to add a .gitignore file (recommended)
 - Choose to install the sample project's dependencies (recommended)
 
-```bash
-npx hardhat
-```
-This command initializes a new Hardhat project for smart contract development.
-
-2. Write Smart Contract: (smart-contract directory)
+1. Write Smart Contract: (smart-contract directory)
 
 Create a file `MusicRights.sol` and remove the file `Lock.sol` from the `contracts` directory:
 
@@ -368,11 +368,23 @@ node app.js
 
 ## Step 4: Setting up the Frontend Directory (in the main music-rights-blockchain directory)
 
-1. Create a frontend directory using Next.js - Comments: `TypeScript` - No, `ESLint` - No, `Tailwind CSS` - Yes, `src/` - No, `App Router` - Yes, `import alias` - No
+1. Create a frontend directory using Next.js:
 
 ```bash
 npx create-next-app@latest frontend 
 ```
+
+When prompted, answer the questions as follows:
+
+√ Would you like to use TypeScript? ... No
+√ Would you like to use ESLint? ... No
+√ Would you like to use Tailwind CSS? ... Yes
+√ Would you like to use `src/` directory? ... No
+√ Would you like to use App Router? (recommended) ... Yes
+√ Would you like to customize the default import alias (@/*)? ... No
+
+This will create a new Next.js project in the `frontend` directory with the specified configuration.
+
 ```bash
 cd frontend
 ```
