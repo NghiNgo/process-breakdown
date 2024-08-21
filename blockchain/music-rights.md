@@ -1,3 +1,5 @@
+# Music Rights Blockchain Project Setup Guide
+
 ## Step 1: Set up the development environment
 
 1. Install Node.js and npm (Node Package Manager)
