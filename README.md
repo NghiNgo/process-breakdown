@@ -66,10 +66,6 @@ We welcome contributions from the community. If you'd like to contribute, please
 
 ## Contact
 
-[Your Name] - [Your Email]
+[Nghi Ngo] - [tuongnghi.ngonguyen@gmail.com]
 
-Project Link: [https://github.com/your_username/process-breakdown](https://github.com/your_username/process-breakdown)
-
-## License
-
-This project is distributed under the MIT License. See `LICENSE` for more information.
+Project Link: [https://github.com/NghiNgo/process-breakdown](https://github.com/NghiNgo/process-breakdown)
